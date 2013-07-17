@@ -1,10 +1,13 @@
 package com.google.protobuf.maven;
 
-import com.google.common.collect.ImmutableList;
-import org.apache.maven.artifact.Artifact;
-
 import java.io.File;
 import java.util.List;
+
+import org.apache.maven.artifact.Artifact;
+
+import com.google.common.collect.ImmutableList;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * @phase generate-test-sources
@@ -19,6 +22,7 @@ public final class ProtocTestCompileMojo extends AbstractProtocMojo {
      * @parameter default-value="${basedir}/src/test/proto"
      * @required
      */
+    @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
     private File protoTestSourceRoot;
 
     /**
@@ -27,6 +31,7 @@ public final class ProtocTestCompileMojo extends AbstractProtocMojo {
      * @parameter default-value="${project.build.directory}/generated-test-sources/protoc"
      * @required
      */
+    @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
     private File outputDirectory;
 
     @Override
