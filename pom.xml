@@ -11,7 +11,7 @@
   <artifactId>maven-protoc-plugin</artifactId>
   <packaging>maven-plugin</packaging>
   <name>Maven Protoc Plugin</name>
-  <version>0.2-HPS-1-SNAPSHOT</version>
+  <version>0.2-HPS-1</version>
 
   <properties>
     <project.build.targetJdk>1.6</project.build.targetJdk>
@@ -23,7 +23,7 @@
   <scm>
     <connection>scm:git:git://github.com/hgschmie/${project.artifactId}.git</connection>
     <developerConnection>scm:git:git@github.com:hgschmie/${project.artifactId}.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>maven-protoc-plugin-0.2-HPS-1</tag>
   </scm>
 
   <dependencies>
