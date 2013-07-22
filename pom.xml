@@ -4,14 +4,14 @@
     <parent>
         <groupId>com.facebook</groupId>
         <artifactId>facebook-oss-pom</artifactId>
-        <version>6-SNAPSHOT</version>
+        <version>6</version>
     </parent>
 
     <groupId>de.softwareforge.mojo</groupId>
     <artifactId>maven-protoc-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <name>Maven Protoc Plugin</name>
-    <version>0.1.11-SNAPSHOT</version>
+    <version>0.1.11</version>
 
     <properties>
       <fb.check.skip-license>true</fb.check.skip-license>
@@ -21,7 +21,8 @@
     <scm>
       <connection>scm:git:git://github.com/hgschmie/${project.artifactId}.git</connection>
       <developerConnection>scm:git:git@github.com:hgschmie/${project.artifactId}.git</developerConnection>
-    </scm>
+      <tag>maven-protoc-plugin-0.1.11</tag>
+  </scm>
 
     <dependencies>
         <dependency>
