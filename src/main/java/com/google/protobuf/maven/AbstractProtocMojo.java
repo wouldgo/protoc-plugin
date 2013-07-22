@@ -267,7 +267,9 @@ abstract class AbstractProtocMojo extends AbstractMojo {
                     !classpathElementFile.getName().endsWith(".xml")) {
 
                 // create the jar file. the constructor validates.
-                try (JarFile classpathJar = new JarFile(classpathElementFile)) {
+                JarFile classpathJar = null;
+                try {
+                    classpathJar = new JarFile(classpathElementFile);
                     for (JarEntry jarEntry : list(classpathJar.entries())) {
                         final String jarEntryName = jarEntry.getName();
                         if (jarEntry.getName().endsWith(PROTO_FILE_SUFFIX)) {
@@ -287,6 +289,11 @@ abstract class AbstractProtocMojo extends AbstractMojo {
                 } catch (IOException e) {
                     throw new IllegalArgumentException(format(
                             "%s was not a readable artifact", classpathElementFile));
+                }
+                finally {
+                    if (classpathJar != null) {
+                        classpathJar.close();
+                    }
                 }
             } else if (classpathElementFile.isDirectory()) {
                 File[] protoFiles = classpathElementFile.listFiles(new FilenameFilter() {
