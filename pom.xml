@@ -11,7 +11,7 @@
     <artifactId>maven-protoc-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <name>Maven Protoc Plugin</name>
-    <version>0.1.11</version>
+    <version>0.1.12-SNAPSHOT</version>
 
     <properties>
       <fb.check.skip-license>true</fb.check.skip-license>
@@ -21,7 +21,7 @@
     <scm>
       <connection>scm:git:git://github.com/hgschmie/${project.artifactId}.git</connection>
       <developerConnection>scm:git:git@github.com:hgschmie/${project.artifactId}.git</developerConnection>
-      <tag>maven-protoc-plugin-0.1.11</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <dependencies>
