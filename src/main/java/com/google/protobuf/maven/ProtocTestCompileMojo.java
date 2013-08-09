@@ -4,59 +4,57 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import com.google.common.collect.ImmutableList;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-/**
- * @phase generate-test-sources
- * @goal testCompile
- * @requiresDependencyResolution test
- */
+@Mojo(name = "test-compile", defaultPhase = LifecyclePhase.GENERATE_TEST_SOURCES, threadSafe = true, requiresProject = true, requiresDependencyResolution = ResolutionScope.TEST)
 public final class ProtocTestCompileMojo extends AbstractProtocMojo {
 
-    /**
-     * The source directories containing the sources to be compiled.
-     *
-     * @parameter default-value="${basedir}/src/test/proto"
-     * @required
-     */
-    @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
-    private File protoTestSourceRoot;
+  /**
+   * The source directories containing the sources to be compiled.
+   *
+   */
+  @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
+  @Parameter(defaultValue = "${basedir}/src/test/proto", required = true)
+  private File protoTestSourceRoot;
 
-    /**
-     * This is the directory into which the {@code .java} will be created.
-     *
-     * @parameter default-value="${project.build.directory}/generated-test-sources/protoc"
-     * @required
-     */
-    @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
-    private File outputDirectory;
+  /**
+   * This is the directory into which the {@code .java} will be created.
+   *
+   */
+  @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
+  @Parameter(defaultValue = "${project.build.directory}/generated-test-sources/protoc", required = true)
+  private File outputDirectory;
 
-    @Override
-    protected void attachFiles() {
-        project.addTestCompileSourceRoot(outputDirectory.getAbsolutePath());
-        projectHelper.addTestResource(project, protoTestSourceRoot.getAbsolutePath(),
-                ImmutableList.of("**/*.proto"), ImmutableList.of());
-    }
+  @Override
+  protected void attachFiles() {
+    project.addTestCompileSourceRoot(outputDirectory.getAbsolutePath());
+    projectHelper.addTestResource(project, protoTestSourceRoot.getAbsolutePath(),
+        ImmutableList.of("**/*.proto"), ImmutableList.of());
+  }
 
-    @Override
-    protected List<Artifact> getDependencyArtifacts() {
-        // TODO(gak): maven-project needs generics
-        @SuppressWarnings("unchecked")
-        List<Artifact> testArtifacts = project.getTestArtifacts();
-        return testArtifacts;
-    }
+  @Override
+  protected List<Artifact> getDependencyArtifacts() {
+    // TODO(gak): maven-project needs generics
+    // TODO(wouldgo) don't require compile scope for other atificats that contains protos...
+    @SuppressWarnings("unchecked")
+    List<Artifact> testArtifacts = project.getTestArtifacts();
+    return testArtifacts;
+  }
 
-    @Override
-    protected File getOutputDirectory() {
-        return outputDirectory;
-    }
+  @Override
+  protected File getOutputDirectory() {
+    return outputDirectory;
+  }
 
-    @Override
-    protected File getProtoSourceRoot() {
-        return protoTestSourceRoot;
-    }
-
+  @Override
+  protected File getProtoSourceRoot() {
+    return protoTestSourceRoot;
+  }
 }

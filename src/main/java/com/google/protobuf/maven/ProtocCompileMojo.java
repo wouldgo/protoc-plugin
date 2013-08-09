@@ -4,6 +4,10 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import com.google.common.collect.ImmutableList;
 
@@ -16,53 +20,49 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * referenced. Finally, it adds the proto files to the project as resources so
  * that they are included in the final artifact.
  *
- * @phase generate-sources
- * @goal compile
- * @requiresDependencyResolution compile
  */
-
+@Mojo(name = "compile", defaultPhase = LifecyclePhase.GENERATE_SOURCES, threadSafe = true, requiresProject = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 public final class ProtocCompileMojo extends AbstractProtocMojo {
 
-    /**
-     * The source directories containing the sources to be compiled.
-     *
-     * @parameter default-value="${basedir}/src/main/proto"
-     * @required
-     */
-    @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
-    private File protoSourceRoot;
+  /**
+   * The source directories containing the sources to be compiled.
+   *
+   */
+  @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
+  @Parameter(defaultValue = "${basedir}/src/main/proto", required = true)
+  private File protoSourceRoot;
 
-    /**
-     * This is the directory into which the {@code .java} will be created.
-     *
-     * @parameter default-value="${project.build.directory}/generated-sources/protoc"
-     * @required
-     */
-    @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
-    private File outputDirectory;
+  /**
+   * This is the directory into which the {@code .java} will be created.
+   *
+   */
+  @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
+  @Parameter(defaultValue = "${project.build.directory}/generated-sources/protoc", required = true)
+  private File outputDirectory;
 
-    @Override
-    protected List<Artifact> getDependencyArtifacts() {
-        // TODO(gak): maven-project needs generics
-        @SuppressWarnings("unchecked")
-        List<Artifact> compileArtifacts = project.getCompileArtifacts();
-        return compileArtifacts;
-    }
+  @Override
+  protected List<Artifact> getDependencyArtifacts() {
+    // TODO(gak): maven-project needs generics
+    // TODO(wouldgo) don't require compile scope for other atificats that contains protos...
+    @SuppressWarnings("unchecked")
+    List<Artifact> compileArtifacts = project.getCompileArtifacts();
+    return compileArtifacts;
+  }
 
-    @Override
-    protected File getOutputDirectory() {
-        return outputDirectory;
-    }
+  @Override
+  protected File getOutputDirectory() {
+    return outputDirectory;
+  }
 
-    @Override
-    protected File getProtoSourceRoot() {
-        return protoSourceRoot;
-    }
+  @Override
+  protected File getProtoSourceRoot() {
+    return protoSourceRoot;
+  }
 
-    @Override
-    protected void attachFiles() {
-        project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
-        projectHelper.addResource(project, protoSourceRoot.getAbsolutePath(),
-                ImmutableList.of("**/*.proto"), ImmutableList.of());
-    }
+  @Override
+  protected void attachFiles() {
+    project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
+    projectHelper.addResource(project, protoSourceRoot.getAbsolutePath(),
+        ImmutableList.of("**/*.proto"), ImmutableList.of());
+  }
 }
