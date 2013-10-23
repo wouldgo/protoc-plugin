@@ -370,27 +370,19 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	}
 
 	public static void clean(File aFile) {
+		if(aFile.isDirectory() && aFile.list().length > 0) {
+			File[] files = aFile.listFiles();
 
-		if(aFile.isDirectory()) {
-			if(aFile.list().length == 0){
-				aFile.delete();
-			} else {
-				File[] files = aFile.listFiles();
+			for (File aFileInFolder : files) {
 
-				for (File aFileInFolder : files) {
-					if (!aFileInFolder.isHidden()) { // Doesn't delete .svn folder
-						clean(aFileInFolder);
-					}
-				}
+				if (!aFileInFolder.isHidden()) { // Doesn't delete .svn folder
 
-				if(aFile.list().length == 0){
-					aFile.delete();
+					clean(aFileInFolder);
 				}
 			}
-		} else {
-			if (!aFile.isHidden()) {
-				aFile.delete();
-			}
+		} else if (!aFile.isDirectory() && !aFile.isHidden()) {
+
+			aFile.delete();
 		}
 	}
 }
