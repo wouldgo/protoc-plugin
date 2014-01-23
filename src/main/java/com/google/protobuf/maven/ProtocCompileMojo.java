@@ -44,25 +44,24 @@ public final class ProtocCompileMojo extends AbstractProtocMojo {
   protected List<Artifact> getDependencyArtifacts() {
     // TODO(gak): maven-project needs generics
     // TODO(wouldgo) don't require compile scope for other atificats that contains protos...
-    @SuppressWarnings("unchecked")
-    List<Artifact> compileArtifacts = project.getCompileArtifacts();
+    List<Artifact> compileArtifacts = this.project.getCompileArtifacts();
     return compileArtifacts;
   }
 
   @Override
   protected File getOutputDirectory() {
-    return outputDirectory;
+    return this.outputDirectory;
   }
 
   @Override
   protected File getProtoSourceRoot() {
-    return protoSourceRoot;
+    return this.protoSourceRoot;
   }
 
   @Override
   protected void attachFiles() {
-    project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
-    projectHelper.addResource(project, protoSourceRoot.getAbsolutePath(),
+    this.project.addCompileSourceRoot(this.outputDirectory.getAbsolutePath());
+    this.projectHelper.addResource(this.project, this.protoSourceRoot.getAbsolutePath(),
         ImmutableList.of("**/*.proto"), ImmutableList.of());
   }
 }

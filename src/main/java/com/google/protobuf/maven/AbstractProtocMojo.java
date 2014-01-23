@@ -1,21 +1,12 @@
 package com.google.protobuf.maven;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Sets.newHashSet;
-import static java.lang.String.format;
-import static java.util.Arrays.asList;
-import static java.util.Collections.list;
-import static org.codehaus.plexus.util.FileUtils.cleanDirectory;
-import static org.codehaus.plexus.util.FileUtils.copyStreamToFile;
-import static org.codehaus.plexus.util.FileUtils.getFiles;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
@@ -30,12 +21,15 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -53,7 +47,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 abstract class AbstractProtocMojo extends AbstractMojo {
 
 	private static final String PROTO_FILE_SUFFIX = ".proto";
-	private static final String DEFAULT_INCLUDES = "**/*" + PROTO_FILE_SUFFIX;
+	private static final String DEFAULT_INCLUDES = "**/*" + AbstractProtocMojo.PROTO_FILE_SUFFIX;
 
 	/**
 	 * The current Maven thisProject.
@@ -112,7 +106,7 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	private boolean hashDependentPaths;
 
 	@Parameter
-	private Set<String> includes = ImmutableSet.of(DEFAULT_INCLUDES);
+	private Set<String> includes = ImmutableSet.of(AbstractProtocMojo.DEFAULT_INCLUDES);
 
 	@Parameter
 	private Set<String> excludes = ImmutableSet.of();
@@ -125,22 +119,22 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		checkParameters();
-		final File protoSourceRoot = getProtoSourceRoot();
+		this.checkParameters();
+		final File protoSourceRoot = this.getProtoSourceRoot();
 		if (protoSourceRoot.exists()) {
 			try {
-				ImmutableSet<File> protoFiles = findProtoFilesInDirectory(protoSourceRoot);
-				final File outputDirectory = getOutputDirectory();
-				ImmutableSet<File> outputFiles = findGeneratedFilesInDirectory(getOutputDirectory());
+				ImmutableSet<File> protoFiles = this.findProtoFilesInDirectory(protoSourceRoot);
+				final File outputDirectory = this.getOutputDirectory();
+				ImmutableSet<File> outputFiles = this.findGeneratedFilesInDirectory(this.getOutputDirectory());
 
 				if (protoFiles.isEmpty()) {
-					getLog().info("No proto files to compile.");
-				} else if (checkStaleness && lastModified(protoFiles) + staleMillis < lastModified(outputFiles)) {
-					getLog().info("Skipping compilation because target directory newer than sources.");
-					attachFiles();
+					this.getLog().info("No proto files to compile.");
+				} else if (this.checkStaleness && this.lastModified(protoFiles) + this.staleMillis < this.lastModified(outputFiles)) {
+					this.getLog().info("Skipping compilation because target directory newer than sources.");
+					this.attachFiles();
 				} else {
 					ImmutableSet<File> derivedProtoPathElements =
-							makeProtoPathFromJars(temporaryProtoFileDirectory, getDependencyArtifactFiles());
+							this.makeProtoPathFromJars(this.temporaryProtoFileDirectory, this.getDependencyArtifactFiles());
 
 					if(!outputDirectory.exists() && !outputDirectory.mkdirs()) {
 						if (!outputDirectory.exists()) {
@@ -152,22 +146,22 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 					}
 
 					// Quick fix to fix issues with two mvn installs in a row (ie no clean)
-					clean(outputDirectory);
+					AbstractProtocMojo.clean(outputDirectory);
 
-					Protoc protoc = new Protoc.Builder(protocExecutable, outputDirectory)
+					Protoc protoc = new Protoc.Builder(this.protocExecutable, outputDirectory)
 					.addProtoPathElement(protoSourceRoot)
 					.addProtoPathElements(derivedProtoPathElements)
-					.addProtoPathElements(asList(additionalProtoPathElements))
+					.addProtoPathElements(Arrays.asList(this.additionalProtoPathElements))
 					.addProtoFiles(protoFiles)
 					.build();
 					final int exitStatus = protoc.compile();
 					if (exitStatus != 0) {
-						getLog().error("protoc failed output: " + protoc.getOutput());
-						getLog().error("protoc failed error: " + protoc.getError());
+						this.getLog().error("protoc failed output: " + protoc.getOutput());
+						this.getLog().error("protoc failed error: " + protoc.getError());
 						throw new MojoFailureException(
 								"protoc did not exit cleanly. Review output for more information.");
 					}
-					attachFiles();
+					this.attachFiles();
 				}
 			} catch (IOException e) {
 				throw new MojoExecutionException("An IO error occured", e);
@@ -177,7 +171,7 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 				throw new MojoExecutionException("An error occurred while invoking protoc.", e);
 			}
 		} else {
-			getLog().info(format("%s does not exist. Review the configuration or consider disabling the plugin.",
+			this.getLog().info(String.format("%s does not exist. Review the configuration or consider disabling the plugin.",
 					protoSourceRoot));
 		}
 	}
@@ -188,7 +182,7 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 
 		// TODO(gak): plexus-utils needs generics
 		@SuppressWarnings("unchecked")
-		List<File> javaFilesInDirectory = getFiles(directory, "**/*.java", null);
+		List<File> javaFilesInDirectory = FileUtils.getFiles(directory, "**/*.java", null);
 		return ImmutableSet.copyOf(javaFilesInDirectory);
 	}
 
@@ -202,17 +196,17 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	}
 
 	private void checkParameters() {
-		checkNotNull(project, "project");
-		checkNotNull(projectHelper, "projectHelper");
-		checkNotNull(protocExecutable, "protocExecutable");
-		final File protoSourceRoot = getProtoSourceRoot();
-		checkNotNull(protoSourceRoot);
-		checkArgument(!protoSourceRoot.isFile(), "protoSourceRoot is a file, not a diretory");
-		checkNotNull(temporaryProtoFileDirectory, "temporaryProtoFileDirectory");
-		checkState(!temporaryProtoFileDirectory.isFile(), "temporaryProtoFileDirectory is a file, not a directory");
-		final File outputDirectory = getOutputDirectory();
-		checkNotNull(outputDirectory);
-		checkState(!outputDirectory.isFile(), "the outputDirectory is a file, not a directory");
+		Preconditions.checkNotNull(this.project, "project");
+		Preconditions.checkNotNull(this.projectHelper, "projectHelper");
+		Preconditions.checkNotNull(this.protocExecutable, "protocExecutable");
+		final File protoSourceRoot = this.getProtoSourceRoot();
+		Preconditions.checkNotNull(protoSourceRoot);
+		Preconditions.checkArgument(!protoSourceRoot.isFile(), "protoSourceRoot is a file, not a diretory");
+		Preconditions.checkNotNull(this.temporaryProtoFileDirectory, "temporaryProtoFileDirectory");
+		Preconditions.checkState(!this.temporaryProtoFileDirectory.isFile(), "temporaryProtoFileDirectory is a file, not a directory");
+		final File outputDirectory = this.getOutputDirectory();
+		Preconditions.checkNotNull(outputDirectory);
+		Preconditions.checkState(!outputDirectory.isFile(), "the outputDirectory is a file, not a directory");
 	}
 
 	protected abstract File getProtoSourceRoot();
@@ -229,8 +223,8 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	 * @return A set of all dependency artifacts.
 	 */
 	private ImmutableSet<File> getDependencyArtifactFiles() {
-		Set<File> dependencyArtifactFiles = newHashSet();
-		for (Artifact artifact : getDependencyArtifacts()) {
+		Set<File> dependencyArtifactFiles = Sets.newHashSet();
+		for (Artifact artifact : this.getDependencyArtifacts()) {
 			dependencyArtifactFiles.add(artifact.getFile());
 		}
 		return ImmutableSet.copyOf(dependencyArtifactFiles);
@@ -239,14 +233,14 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	/**
 	 * @throws IOException
 	 */
-	ImmutableSet<File> makeProtoPathFromJars(File temporaryProtoFileDirectory, Iterable<File> classpathElementFiles)
+	ImmutableSet<File> makeProtoPathFromJars(File tmpProtoFileDirectory, Iterable<File> classpathElementFiles)
 			throws IOException, MojoExecutionException {
-		checkNotNull(classpathElementFiles, "classpathElementFiles");
+		Preconditions.checkNotNull(classpathElementFiles, "classpathElementFiles");
 		// clean the temporary directory to ensure that stale files aren't used
-		if (temporaryProtoFileDirectory.exists()) {
-			cleanDirectory(temporaryProtoFileDirectory);
+		if (tmpProtoFileDirectory.exists()) {
+			FileUtils.cleanDirectory(tmpProtoFileDirectory);
 		}
-		Set<File> protoDirectories = newHashSet();
+		Set<File> protoDirectories = Sets.newHashSet();
 		for (File classpathElementFile : classpathElementFiles) {
 			// for some reason under IAM, we receive poms as dependent files
 			// I am excluding .xml rather than including .jar as there may be other extensions in use (sar, har, zip)
@@ -257,12 +251,12 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 				JarFile classpathJar = null;
 				try {
 					classpathJar = new JarFile(classpathElementFile);
-					for (JarEntry jarEntry : list(classpathJar.entries())) {
+					for (JarEntry jarEntry : Collections.list(classpathJar.entries())) {
 						final String jarEntryName = jarEntry.getName();
-						if (jarEntry.getName().endsWith(PROTO_FILE_SUFFIX)) {
+						if (jarEntry.getName().endsWith(AbstractProtocMojo.PROTO_FILE_SUFFIX)) {
 							final File uncompressedCopy =
-									new File(new File(temporaryProtoFileDirectory,
-											truncatePath(classpathJar.getName())), jarEntryName);
+									new File(new File(tmpProtoFileDirectory,
+											this.truncatePath(classpathJar.getName())), jarEntryName);
 
 							File outputDirectory = uncompressedCopy.getParentFile();
 							if(!outputDirectory.mkdirs()) {
@@ -274,13 +268,13 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 								}
 							}
 
-							copyStreamToFile(new RawInputStreamFacade(classpathJar
+							FileUtils.copyStreamToFile(new RawInputStreamFacade(classpathJar
 									.getInputStream(jarEntry)), uncompressedCopy);
 							protoDirectories.add(uncompressedCopy.getParentFile());
 						}
 					}
 				} catch (IOException e) {
-					throw new IllegalArgumentException(format(
+					throw new IllegalArgumentException(String.format(
 							"%s was not a readable artifact", classpathElementFile));
 				}
 				finally {
@@ -292,7 +286,7 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 				File[] protoFiles = classpathElementFile.listFiles(new FilenameFilter() {
 					@Override
 					public boolean accept(File dir, String name) {
-						return name.endsWith(PROTO_FILE_SUFFIX);
+						return name.endsWith(AbstractProtocMojo.PROTO_FILE_SUFFIX);
 					}
 				});
 
@@ -305,19 +299,19 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	}
 
 	ImmutableSet<File> findProtoFilesInDirectory(File directory) throws IOException {
-		checkNotNull(directory);
-		checkArgument(directory.isDirectory(), "%s is not a directory", directory);
+		Preconditions.checkNotNull(directory);
+		Preconditions.checkArgument(directory.isDirectory(), "%s is not a directory", directory);
 		// TODO(gak): plexus-utils needs generics
 		@SuppressWarnings("unchecked")
-		List<File> protoFilesInDirectory = getFiles(directory, Joiner.on(",").join(includes), Joiner.on(",").join(excludes));
+		List<File> protoFilesInDirectory = FileUtils.getFiles(directory, Joiner.on(",").join(this.includes), Joiner.on(",").join(this.excludes));
 		return ImmutableSet.copyOf(protoFilesInDirectory);
 	}
 
 	ImmutableSet<File> findProtoFilesInDirectories(Iterable<File> directories) throws IOException {
-		checkNotNull(directories);
-		Set<File> protoFiles = newHashSet();
+		Preconditions.checkNotNull(directories);
+		Set<File> protoFiles = Sets.newHashSet();
 		for (File directory : directories) {
-			protoFiles.addAll(findProtoFilesInDirectory(directory));
+			protoFiles.addAll(this.findProtoFilesInDirectory(directory));
 		}
 		return ImmutableSet.copyOf(protoFiles);
 	}
@@ -330,15 +324,15 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	 */
 	String truncatePath(final String jarPath) throws MojoExecutionException {
 
-		if (hashDependentPaths) {
+		if (this.hashDependentPaths) {
 			try {
-				return toHexString(MessageDigest.getInstance("MD5").digest(jarPath.getBytes(Charsets.UTF_8)));
+				return AbstractProtocMojo.toHexString(MessageDigest.getInstance("MD5").digest(jarPath.getBytes(Charsets.UTF_8)));
 			} catch (NoSuchAlgorithmException e) {
 				throw new MojoExecutionException("Failed to expand dependent jar", e);
 			}
 		}
 
-		String repository = localRepository.getBasedir().replace('\\', '/');
+		String repository = this.localRepository.getBasedir().replace('\\', '/');
 		if (!repository.endsWith("/")) {
 			repository += "/";
 		}
@@ -364,7 +358,7 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	public static String toHexString(byte[] byteArray) {
 		final StringBuilder hexString = new StringBuilder(2 * byteArray.length);
 		for (final byte b : byteArray) {
-			hexString.append(HEX_CHARS[(b & 0xF0) >> 4]).append(HEX_CHARS[b & 0x0F]);
+			hexString.append(AbstractProtocMojo.HEX_CHARS[(b & 0xF0) >> 4]).append(AbstractProtocMojo.HEX_CHARS[b & 0x0F]);
 		}
 		return hexString.toString();
 	}
@@ -377,7 +371,7 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 
 				if (!aFileInFolder.isHidden()) { // Doesn't delete .svn folder
 
-					clean(aFileInFolder);
+					AbstractProtocMojo.clean(aFileInFolder);
 				}
 			}
 		} else if (!aFile.isDirectory() && !aFile.isHidden()) {

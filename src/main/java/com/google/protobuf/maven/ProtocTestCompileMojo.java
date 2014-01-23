@@ -34,8 +34,8 @@ public final class ProtocTestCompileMojo extends AbstractProtocMojo {
 
   @Override
   protected void attachFiles() {
-    project.addTestCompileSourceRoot(outputDirectory.getAbsolutePath());
-    projectHelper.addTestResource(project, protoTestSourceRoot.getAbsolutePath(),
+    this.project.addTestCompileSourceRoot(this.outputDirectory.getAbsolutePath());
+    this.projectHelper.addTestResource(this.project, this.protoTestSourceRoot.getAbsolutePath(),
         ImmutableList.of("**/*.proto"), ImmutableList.of());
   }
 
@@ -43,18 +43,17 @@ public final class ProtocTestCompileMojo extends AbstractProtocMojo {
   protected List<Artifact> getDependencyArtifacts() {
     // TODO(gak): maven-project needs generics
     // TODO(wouldgo) don't require compile scope for other atificats that contains protos...
-    @SuppressWarnings("unchecked")
-    List<Artifact> testArtifacts = project.getTestArtifacts();
+    List<Artifact> testArtifacts = this.project.getTestArtifacts();
     return testArtifacts;
   }
 
   @Override
   protected File getOutputDirectory() {
-    return outputDirectory;
+    return this.outputDirectory;
   }
 
   @Override
   protected File getProtoSourceRoot() {
-    return protoTestSourceRoot;
+    return this.protoTestSourceRoot;
   }
 }

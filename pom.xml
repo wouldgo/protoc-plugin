@@ -17,12 +17,13 @@
 		<maven-plugin.version>3.0.5</maven-plugin.version>
 
 		<findbugs-annotations.version>2.0.1</findbugs-annotations.version>
-		<guava.version>14.0</guava.version>
+		<guava.version>16.0</guava.version>
 	</properties>
 
 	<name>Maven Protoc Plugin</name>
 
 	<scm>
+		<url>https://github.com/wouldgo/protoc-plugin</url>
 		<connection>scm:git:git://github.com/wouldgo/maven-protoc-plugin.git</connection>
 		<developerConnection>scm:git:git@github.com:wouldgo/maven-protoc-plugin.git</developerConnection>
 		<tag>HEAD</tag>

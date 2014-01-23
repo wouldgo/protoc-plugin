@@ -1,20 +1,18 @@
 package com.google.protobuf.maven;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import org.codehaus.plexus.util.cli.CommandLineException;
-import org.codehaus.plexus.util.cli.CommandLineUtils;
-import org.codehaus.plexus.util.cli.Commandline;
-
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Sets.newHashSet;
+import org.codehaus.plexus.util.cli.CommandLineException;
+import org.codehaus.plexus.util.cli.CommandLineUtils;
+import org.codehaus.plexus.util.cli.Commandline;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * This class represents an invokable configuration of the {@code protoc}
@@ -44,10 +42,10 @@ final class Protoc {
      */
     private Protoc(String executable, ImmutableSet<File> protoPath,
                    ImmutableSet<File> protoFiles, File javaOutputDirectory) {
-        this.executable = checkNotNull(executable, "executable");
-        this.protoPathElements = checkNotNull(protoPath, "protoPath");
-        this.protoFiles = checkNotNull(protoFiles, "protoFiles");
-        this.javaOutputDirectory = checkNotNull(javaOutputDirectory, "javaOutputDirectory");
+        this.executable = Preconditions.checkNotNull(executable, "executable");
+        this.protoPathElements = Preconditions.checkNotNull(protoPath, "protoPath");
+        this.protoFiles = Preconditions.checkNotNull(protoFiles, "protoFiles");
+        this.javaOutputDirectory = Preconditions.checkNotNull(javaOutputDirectory, "javaOutputDirectory");
         this.error = new CommandLineUtils.StringStreamConsumer();
         this.output = new CommandLineUtils.StringStreamConsumer();
     }
@@ -61,9 +59,9 @@ final class Protoc {
      */
     public int compile() throws CommandLineException {
         Commandline cl = new Commandline();
-        cl.setExecutable(executable);
-        cl.addArguments(buildProtocCommand().toArray(new String[]{}));
-        return CommandLineUtils.executeCommandLine(cl, null, output, error);
+        cl.setExecutable(this.executable);
+        cl.addArguments(this.buildProtocCommand().toArray(new String[]{}));
+        return CommandLineUtils.executeCommandLine(cl, null, this.output, this.error);
     }
 
     /**
@@ -74,13 +72,13 @@ final class Protoc {
      * @return A list consisting of the executable followed by any arguments.
      */
     ImmutableList<String> buildProtocCommand() {
-        final List<String> command = newLinkedList();
+        final List<String> command = Lists.newLinkedList();
         // add the executable
-        for (File protoPathElement : protoPathElements) {
+        for (File protoPathElement : this.protoPathElements) {
             command.add("--proto_path=" + protoPathElement);
         }
-        command.add("--java_out=" + javaOutputDirectory);
-        for (File protoFile : protoFiles) {
+        command.add("--java_out=" + this.javaOutputDirectory);
+        for (File protoFile : this.protoFiles) {
             command.add(protoFile.toString());
         }
         return ImmutableList.copyOf(command);
@@ -90,14 +88,14 @@ final class Protoc {
      * @return the output
      */
     public String getOutput() {
-        return output.getOutput();
+        return this.output.getOutput();
     }
 
     /**
      * @return the error
      */
     public String getError() {
-        return error.getOutput();
+        return this.error.getOutput();
     }
 
     /**
@@ -123,11 +121,11 @@ final class Protoc {
          *                                  not a directory.
          */
         public Builder(String executable, File javaOutputDirectory) {
-            this.executable = checkNotNull(executable, "executable");
-            this.javaOutputDirectory = checkNotNull(javaOutputDirectory);
-            checkArgument(javaOutputDirectory.isDirectory());
-            this.protoFiles = newHashSet();
-            this.protopathElements = newHashSet();
+            this.executable = Preconditions.checkNotNull(executable, "executable");
+            this.javaOutputDirectory = Preconditions.checkNotNull(javaOutputDirectory);
+            Preconditions.checkArgument(javaOutputDirectory.isDirectory());
+            this.protoFiles = Sets.newHashSet();
+            this.protopathElements = Sets.newHashSet();
         }
 
         /**
@@ -142,36 +140,36 @@ final class Protoc {
          * @throws NullPointerException  If {@code protoFile} is {@code null}.
          */
         public Builder addProtoFile(File protoFile) {
-            checkNotNull(protoFile);
-            checkArgument(protoFile.isFile());
-            checkArgument(protoFile.getName().endsWith(".proto"));
-            checkProtoFileIsInProtopath(protoFile);
-            protoFiles.add(protoFile);
+            Preconditions.checkNotNull(protoFile);
+            Preconditions.checkArgument(protoFile.isFile());
+            Preconditions.checkArgument(protoFile.getName().endsWith(".proto"));
+            this.checkProtoFileIsInProtopath(protoFile);
+            this.protoFiles.add(protoFile);
             return this;
         }
 
         private void checkProtoFileIsInProtopath(File protoFile) {
             assert protoFile.isFile();
-            checkState(checkProtoFileIsInProtopathHelper(protoFile.getParentFile()));
+            Preconditions.checkState(this.checkProtoFileIsInProtopathHelper(protoFile.getParentFile()));
         }
 
         private boolean checkProtoFileIsInProtopathHelper(File directory) {
             assert directory.isDirectory();
-            if (protopathElements.contains(directory)) {
+            if (this.protopathElements.contains(directory)) {
                 return true;
             } else {
                 final File parentDirectory = directory.getParentFile();
                 return (parentDirectory == null) ? false
-                        : checkProtoFileIsInProtopathHelper(parentDirectory);
+                        : this.checkProtoFileIsInProtopathHelper(parentDirectory);
             }
         }
 
         /**
          * @see #addProtoFile(File)
          */
-        public Builder addProtoFiles(Iterable<File> protoFiles) {
-            for (File protoFile : protoFiles) {
-                addProtoFile(protoFile);
+        public Builder addProtoFiles(Iterable<File> someProtoFiles) {
+            for (File protoFile : someProtoFiles) {
+                this.addProtoFile(protoFile);
             }
             return this;
         }
@@ -187,18 +185,18 @@ final class Protoc {
          *                                  directory.
          */
         public Builder addProtoPathElement(File protopathElement) {
-            checkNotNull(protopathElement);
-            checkArgument(protopathElement.isDirectory());
-            protopathElements.add(protopathElement);
+            Preconditions.checkNotNull(protopathElement);
+            Preconditions.checkArgument(protopathElement.isDirectory());
+            this.protopathElements.add(protopathElement);
             return this;
         }
 
         /**
          * @see #addProtoPathElement(File)
          */
-        public Builder addProtoPathElements(Iterable<File> protopathElements) {
-            for (File protopathElement : protopathElements) {
-                addProtoPathElement(protopathElement);
+        public Builder addProtoPathElements(Iterable<File> someProtopathElements) {
+            for (File protopathElement : someProtopathElements) {
+                this.addProtoPathElement(protopathElement);
             }
             return this;
         }
@@ -208,9 +206,9 @@ final class Protoc {
          * @throws IllegalStateException If no proto files have been added.
          */
         public Protoc build() {
-            checkState(!protoFiles.isEmpty());
-            return new Protoc(executable, ImmutableSet.copyOf(protopathElements),
-                    ImmutableSet.copyOf(protoFiles), javaOutputDirectory);
+            Preconditions.checkState(!this.protoFiles.isEmpty());
+            return new Protoc(this.executable, ImmutableSet.copyOf(this.protopathElements),
+                    ImmutableSet.copyOf(this.protoFiles), this.javaOutputDirectory);
         }
     }
 }
