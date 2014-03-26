@@ -11,8 +11,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import com.google.common.collect.ImmutableList;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 /**
  * This mojo executes the {@code protoc} compiler for generating java sources
  * from protocol buffer definitions. It also searches dependency artifacts for
@@ -28,7 +26,6 @@ public final class ProtocCompileMojo extends AbstractProtocMojo {
    * The source directories containing the sources to be compiled.
    *
    */
-  @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
   @Parameter(defaultValue = "${basedir}/src/main/proto", required = true)
   private File protoSourceRoot;
 
@@ -36,7 +33,6 @@ public final class ProtocCompileMojo extends AbstractProtocMojo {
    * This is the directory into which the {@code .java} will be created.
    *
    */
-  @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
   @Parameter(defaultValue = "${project.build.directory}/generated-sources/protoc", required = true)
   private File outputDirectory;
 

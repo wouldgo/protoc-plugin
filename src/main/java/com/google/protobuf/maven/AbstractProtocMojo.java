@@ -31,8 +31,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 /**
  * Abstract Mojo implementation.
  * <p/>
@@ -53,7 +51,6 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	 * The current Maven thisProject.
 	 *
 	 */
-	@SuppressFBWarnings("NP_UNWRITTEN_FIELD")
 	@Component
 	protected MavenProject project;
 
@@ -61,7 +58,6 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	 * A helper used to add resources to the thisProject.
 	 *
 	 */
-	@SuppressFBWarnings("NP_UNWRITTEN_FIELD")
 	@Component
 	protected MavenProjectHelper projectHelper;
 
@@ -69,7 +65,6 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	 * This is the path to the {@code protoc} executable. By default it will search the {@code $PATH}.
 	 *
 	 */
-	@SuppressFBWarnings("NP_UNWRITTEN_FIELD")
 	@Parameter(defaultValue = "protoc", required = true)
 	private String protocExecutable;
 
@@ -81,7 +76,6 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	 * and deleted on exit. This directory is always cleaned during execution.
 	 *
 	 */
-	@SuppressFBWarnings("NP_UNWRITTEN_FIELD")
 	@Parameter(defaultValue = "${project.build.directory}/protoc-dependencies", required = true)
 	private File temporaryProtoFileDirectory;
 
@@ -89,7 +83,6 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	 * This is the path to the local maven {@code repository}.
 	 *
 	 */
-	@SuppressFBWarnings("NP_UNWRITTEN_FIELD")
 	@Parameter(defaultValue = "${localRepository}", required = true)
 	private ArtifactRepository localRepository;
 
@@ -101,7 +94,6 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 	 * However if this property is set to {@code false} longer paths will be used.
 	 *
 	 */
-	@SuppressFBWarnings("NP_UNWRITTEN_FIELD")
 	@Parameter(defaultValue = "true", required = true)
 	private boolean hashDependentPaths;
 
@@ -363,20 +355,26 @@ abstract class AbstractProtocMojo extends AbstractMojo {
 		return hexString.toString();
 	}
 
-	public static void clean(File aFile) {
+	public static boolean clean(File aFile) {
 		if(aFile.isDirectory() && aFile.list().length > 0) {
 			File[] files = aFile.listFiles();
 
+			boolean areDeleted = true;
 			for (File aFileInFolder : files) {
 
 				if (!aFileInFolder.isHidden()) { // Doesn't delete .svn folder
 
-					AbstractProtocMojo.clean(aFileInFolder);
+					areDeleted &= AbstractProtocMojo.clean(aFileInFolder);
 				}
 			}
+
+			return areDeleted;
 		} else if (!aFile.isDirectory() && !aFile.isHidden()) {
 
-			aFile.delete();
+			return aFile.delete();
+		} else {
+
+		  return false;
 		}
 	}
 }

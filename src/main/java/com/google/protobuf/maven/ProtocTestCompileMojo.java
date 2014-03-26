@@ -11,8 +11,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import com.google.common.collect.ImmutableList;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 @Mojo(name = "test-compile", defaultPhase = LifecyclePhase.GENERATE_TEST_SOURCES, threadSafe = true, requiresProject = true, requiresDependencyResolution = ResolutionScope.TEST)
 public final class ProtocTestCompileMojo extends AbstractProtocMojo {
 
@@ -20,7 +18,6 @@ public final class ProtocTestCompileMojo extends AbstractProtocMojo {
    * The source directories containing the sources to be compiled.
    *
    */
-  @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
   @Parameter(defaultValue = "${basedir}/src/test/proto", required = true)
   private File protoTestSourceRoot;
 
@@ -28,7 +25,6 @@ public final class ProtocTestCompileMojo extends AbstractProtocMojo {
    * This is the directory into which the {@code .java} will be created.
    *
    */
-  @SuppressFBWarnings({"UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD"})
   @Parameter(defaultValue = "${project.build.directory}/generated-test-sources/protoc", required = true)
   private File outputDirectory;
 

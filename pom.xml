@@ -4,23 +4,26 @@
 
 	<groupId>org.wouldgo</groupId>
 	<artifactId>protoc-plugin</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.1</version>
 	<packaging>maven-plugin</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<source.version>1.6</source.version>
 
-		<maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
 		<maven-plugin-annotations.version>3.2</maven-plugin-annotations.version>
-		
-		<maven-plugin.version>3.0.5</maven-plugin.version>
+		<maven.version>3.0.5</maven.version>
 
-		<findbugs-annotations.version>2.0.1</findbugs-annotations.version>
+		<maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
+    <maven.lifecycle.mapping.plugin.version>1.0.0</maven.lifecycle.mapping.plugin.version>
+		<findbugs.maven.plugin.version>2.5.3</findbugs.maven.plugin.version>
+
 		<guava.version>16.0</guava.version>
 	</properties>
 
 	<name>Maven Protoc Plugin</name>
+	<url>https://github.com/wouldgo/protoc-plugin</url>
+	<description>Maven plugin calls the protocol buffers compiler.</description>
 
 	<scm>
 		<url>https://github.com/wouldgo/protoc-plugin</url>
@@ -28,6 +31,11 @@
 		<developerConnection>scm:git:git@github.com:wouldgo/maven-protoc-plugin.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
+
+	<issueManagement>
+		<url>https://github.com/wouldgo/protoc-plugin/issues</url>
+		<system>github</system>
+	</issueManagement>
 
 	<dependencies>
 		<dependency>
@@ -39,14 +47,8 @@
 
 		<dependency>
 			<groupId>org.apache.maven</groupId>
-			<artifactId>maven-plugin-api</artifactId>
-			<version>${maven-plugin.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-core</artifactId>
-			<version>${maven-plugin.version}</version>
+			<version>${maven.version}</version>
 		</dependency>
 
 		<dependency>
@@ -54,15 +56,38 @@
 			<artifactId>guava</artifactId>
 			<version>${guava.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>annotations</artifactId>
-			<version>${findbugs-annotations.version}</version>
-		</dependency>
 	</dependencies>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>${maven.lifecycle.mapping.plugin.version}</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>findbugs-maven-plugin</artifactId>
+                    <versionRange>${findbugs.maven.plugin.version}</versionRange>
+                    <goals>
+                      <goal>findbugs</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -72,6 +97,27 @@
 					<source>${source.version}</source>
 					<target>${source.version}</target>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>${findbugs.maven.plugin.version}</version>
+				<executions>
+					<execution>
+						<id>findbugs-checks</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>findbugs</goal>
+						</goals>
+						<configuration>
+							<includeTests>true</includeTests>
+							<effort>Max</effort>
+							<maxHeap>1024</maxHeap>
+							<!-- excludeFilterFile>${project.basedir}/findbugs-exclude-list.xml</excludeFilterFile -->
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
